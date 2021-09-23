@@ -1,9 +1,11 @@
 package no.ntnu.datakomm.chat;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -27,20 +29,38 @@ public class App extends Application {
      */
     @Override
     public void start(Stage primaryStage) {
-        URL r = getClass().getClassLoader().getResource("layout.fxml");
+        URL fxmlUrl = getClass().getResource("layout.fxml");
+        URL cssUrl = getClass().getResource("styles/style.css");
+        URL iconUrl = getClass().getResource("styles/ntnu.png");
         Parent root = null;
-        try {
-            root = FXMLLoader.load(r);
-        } catch (IOException e) {
-            System.out.println("Error while loading FXML");
-            return;
+        boolean loaded = false;
+        if (fxmlUrl != null && cssUrl != null && iconUrl != null) {
+            try {
+                root = FXMLLoader.load(fxmlUrl);
+                Scene scene = new Scene(root, 600, 400);
+                scene.getStylesheets().add(cssUrl.toURI().toString());
+                primaryStage.setTitle("NTNU Ålesund - ChatClient");
+                primaryStage.setScene(scene);
+                Image anotherIcon = null;
+                anotherIcon = new Image(iconUrl.toURI().toString());
+                primaryStage.getIcons().add(anotherIcon);
+                primaryStage.show();
+                loaded = true;
+            } catch (URISyntaxException | IOException e) {
+                System.out.println("Error while loading FXML: " + e.getMessage());
+            }
         }
-        Scene scene = new Scene(root, 600, 400);
-        scene.getStylesheets().add("styles/style.css");
-        primaryStage.setTitle("NTNU Ålesund - ID203012 - ChatClient");
-        primaryStage.setScene(scene);
-        Image anotherIcon = new Image("styles/ntnu.png");
-        primaryStage.getIcons().add(anotherIcon);
-        primaryStage.show();
+        if (!loaded) {
+            if (fxmlUrl == null) {
+                System.out.println("FXML file not found!");
+            }
+            if (cssUrl == null) {
+                System.out.println("CSS file not found!");
+            }
+            if (iconUrl == null) {
+                System.out.println("Icon file not found!");
+            }
+            Platform.exit();
+        }
     }
 }
