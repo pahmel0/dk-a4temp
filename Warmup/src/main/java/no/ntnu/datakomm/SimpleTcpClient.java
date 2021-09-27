@@ -34,63 +34,71 @@ public class SimpleTcpClient {
     public void run() throws InterruptedException {
         log("Simple TCP client started");
 
-        if (connectToServer(HOST, PORT)) {
-            log("Connection to the server established");
-            int a = (int) (1 + Math.random() * 10);
-            int b = (int) (1 + Math.random() * 10);
-            String request = a + "+" + b;
-            if (sendRequestToServer(request)) {
-                log("Sent " + request + " to server");
-                String response = readResponseFromServer();
-                if (response != null) {
-                    log("Server responded with: " + response);
-                    int secondsToSleep = 2 + (int)(Math.random() * 5);
-                    log("Sleeping " + secondsToSleep + " seconds to allow simulate long client-server connection...");
-                    Thread.sleep(secondsToSleep * 1000);
-                    request = "bla+bla";
-                    if (sendRequestToServer(request)) {
-                        log("Sent " + request + " to server");
-                        response = readResponseFromServer();
-                        if (response != null) {
-                            log("Server responded with: " + response);
-                            if (sendRequestToServer("game over") && closeConnection()) {
-                                log("Game over, connection closed");
-                                // When the connection is closed, try to send one more message. It should fail.
-                                if (!sendRequestToServer("2+2")) {
-                                    log("Sending another message after closing the connection failed as expected");
-                                } else {
-                                    log("ERROR: sending a message after closing the connection did not fail!");
-                                }
-                            } else {
-                                log("ERROR: Failed to stop conversation");
-                            }
-                        } else {
-                            log("ERROR: Failed to receive server's response!");
-                        }
-                    } else {
-                        log("ERROR: Failed to send invalid message to server!");
-                    }
-                } else {
-                    log("ERROR: Failed to receive server's response!");
-                }
-            } else {
-                log("ERROR: Failed to send valid message to server!");
-            }
-        } else {
+        if (!connectToServer(HOST, PORT)) {
             log("ERROR: Failed to connect to the server");
+            return;
+        }
+        log("Connection to the server established");
+
+        int a = (int) (1 + Math.random() * 10);
+        int b = (int) (1 + Math.random() * 10);
+        String request = a + "+" + b;
+
+        if (!sendRequestToServer(request)) {
+            log("ERROR: Failed to send valid message to server!");
+            return;
+        }
+        log("Sent " + request + " to server");
+
+        String response = readResponseFromServer();
+        if (response == null) {
+            log("ERROR: Failed to receive server's response!");
+            return;
+        }
+        log("Server responded with: " + response);
+
+        sleepRandomTime();
+        request = "bla+bla";
+        if (!sendRequestToServer(request)) {
+            log("ERROR: Failed to send invalid message to server!");
+            return;
+        }
+        log("Sent " + request + " to server");
+
+        response = readResponseFromServer();
+        if (response == null) {
+            log("ERROR: Failed to receive server's response!");
+            return;
+        }
+        log("Server responded with: " + response);
+
+        if (!sendRequestToServer("game over") || !closeConnection()) {
+            log("ERROR: Failed to stop conversation");
+            return;
+        }
+        log("Game over, connection closed");
+
+        // When the connection is closed, try to send one more message. It should fail.
+        if (!sendRequestToServer("2+2")) {
+            log("Sending another message after closing the connection failed as expected");
+        } else {
+            log("ERROR: sending a message after closing the connection did not fail!");
         }
 
         log("Simple TCP client finished");
     }
 
     /**
-     * Close the TCP connection to the remote server.
-     *
-     * @return True on success, false otherwise
+     * Put the main thread to sleep for a random number of seconds (between 2 and 5 seconds)
      */
-    private boolean closeConnection() {
-        // TODO - implement this method
-        return false;
+    private void sleepRandomTime()  {
+        long secondsToSleep = 2 + (long) (Math.random() * 5);
+        log("Sleeping " + secondsToSleep + " seconds to allow simulate long client-server connection...");
+        try {
+            Thread.sleep(secondsToSleep * 1000);
+        } catch (InterruptedException e) {
+            System.out.println("Thread sleep interrupted... Oh, well...");
+        }
     }
 
     /**
@@ -98,13 +106,25 @@ public class SimpleTcpClient {
      *
      * @param host The remote host to connect to. Can be domain (localhost, ntnu.no, etc), or IP address
      * @param port TCP port to use
-     * @return True when connection established, false otherwise
+     * @return True when connection established, false on error
      */
     private boolean connectToServer(String host, int port) {
         // TODO - implement this method
         // Remember to catch all possible exceptions that the Socket class can throw.
         return false;
     }
+
+    /**
+     * Close the TCP connection to the remote server.
+     *
+     * @return True on success, false otherwise. Note: if the connection was already closed (not established),
+     * return true as well.
+     */
+    private boolean closeConnection() {
+        // TODO - implement this method
+        return false;
+    }
+
 
     /**
      * Send a request message to the server (newline will be added automatically)
@@ -114,11 +134,7 @@ public class SimpleTcpClient {
      */
     private boolean sendRequestToServer(String request) {
         // TODO - implement this method
-        // Hint: What can go wrong? Several things:
-        // * Connection closed by remote host (server shutdown)
-        // * Internet connection lost, timeout in transmission
-        // * Connection not opened.
-        // * What is the request is null or empty?
+        // Hint: you should check if the connection is open
         return false;
     }
 
@@ -130,7 +146,7 @@ public class SimpleTcpClient {
      */
     private String readResponseFromServer() {
         // TODO - implement this method
-        // Similarly to other methods, exception can happen while trying to read the input stream of the TCP Socket
+        // Hint: you should check if the connection is open
         return null;
     }
 
