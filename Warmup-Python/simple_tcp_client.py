@@ -23,8 +23,6 @@ def connect_to_server(host, port):
     # The "global" keyword is needed so that this function refers to the globally defined client_socket variable
     global client_socket
 
-    client_socket = socket(AF_INET, SOCK_STREAM)
-
     # TODO - implement this method
     # Remember to catch all possible exceptions the socket can throw in case you have not worked with exceptions,
     # the syntax is as follows:
