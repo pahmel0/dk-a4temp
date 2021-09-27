@@ -67,6 +67,9 @@ def read_response_from_server():
     # The "global" keyword is needed so that this function refers to the globally defined client_socket variable
     global client_socket
 
+    # Hint: keep reading byte by byte, and append the received byte to a buffered string variable,
+    # until you receive the newline character '\n'
+
     return None
 
 
