@@ -1,13 +1,36 @@
 package no.ntnu.datakomm;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * A Simple TCP client, used as a warm-up exercise for assignment A4.
  */
 public class SimpleTcpClient {
     // Remote host where the server will be running
-    private static final String HOST = "localhost";
+    private static final String HOST = "datakomm.work";
     // TCP port
     private static final int PORT = 1301;
+    // Logger
+    private final Logger logger;
+    // Client socket
+    private final Socket clientSocket;
+    // Response from the server
+    private static final String SERVER_1 = "The server is not connected";
+
+    /**
+     *  An instance of SimpleTcpClient
+     */
+    public SimpleTcpClient(){
+        this.logger = Logger.getLogger(getClass().toString());
+        clientSocket = new Socket();
+    }
 
     /**
      * Run the TCP Client.
@@ -34,7 +57,7 @@ public class SimpleTcpClient {
     public void run() throws InterruptedException {
         log("Simple TCP client started");
 
-        if (!connectToServer(HOST, PORT)) {
+        if (!connectToServer()) {
             log("ERROR: Failed to connect to the server");
             return;
         }
@@ -44,7 +67,7 @@ public class SimpleTcpClient {
         int b = (int) (1 + Math.random() * 10);
         String request = a + "+" + b;
 
-        if (!sendRequestToServer(request)) {
+        if (sendRequestToServer(request)) {
             log("ERROR: Failed to send valid message to server!");
             return;
         }
@@ -59,7 +82,7 @@ public class SimpleTcpClient {
 
         sleepRandomTime();
         request = "bla+bla";
-        if (!sendRequestToServer(request)) {
+        if (sendRequestToServer(request)) {
             log("ERROR: Failed to send invalid message to server!");
             return;
         }
@@ -72,14 +95,14 @@ public class SimpleTcpClient {
         }
         log("Server responded with: " + response);
 
-        if (!sendRequestToServer("game over") || !closeConnection()) {
+        if (sendRequestToServer("game over") || !closeConnection()) {
             log("ERROR: Failed to stop conversation");
             return;
         }
         log("Game over, connection closed");
 
         // When the connection is closed, try to send one more message. It should fail.
-        if (!sendRequestToServer("2+2")) {
+        if (sendRequestToServer("2+2")) {
             log("Sending another message after closing the connection failed as expected");
         } else {
             log("ERROR: sending a message after closing the connection did not fail!");
@@ -104,13 +127,25 @@ public class SimpleTcpClient {
     /**
      * Try to establish TCP connection to the server (the three-way handshake).
      *
-     * @param host The remote host to connect to. Can be domain (localhost, ntnu.no, etc), or IP address
-     * @param port TCP port to use
      * @return True when connection established, false on error
      */
-    private boolean connectToServer(String host, int port) {
-        // TODO - implement this method
+    private boolean connectToServer() {
         // Remember to catch all possible exceptions that the Socket class can throw.
+        try {
+            InetSocketAddress serverAddress = new InetSocketAddress(HOST, PORT);
+            clientSocket.connect(serverAddress);
+            System.out.println(serverAddress);
+
+            return true;
+        } catch (IOException e) {
+            this.logger.log(Level.SEVERE, "Socket error: ");
+            e.printStackTrace();
+        } catch (IllegalArgumentException i) {
+            this.logger.log(Level.SEVERE, "The port number is invalid");
+            i.printStackTrace();
+        } catch (SecurityException s) {
+            this.logger.log(Level.SEVERE, "Permission to resolve the hostname was denied");
+        }
         return false;
     }
 
@@ -121,7 +156,19 @@ public class SimpleTcpClient {
      * return true as well.
      */
     private boolean closeConnection() {
-        // TODO - implement this method
+
+        if (clientSocket.isConnected()) {
+            try {
+                clientSocket.close();
+                this.logger.log(Level.FINE, "The connection was closed");
+                return true;
+            } catch (IOException e) {
+                this.logger.log(Level.SEVERE, "Could not close connection. Exception: ");
+                e.printStackTrace();
+            }
+        }else{
+            this.logger.log(Level.INFO, "\"The server is already closed or lost connection\"");
+        }
         return false;
     }
 
@@ -133,8 +180,21 @@ public class SimpleTcpClient {
      * @return True when message successfully sent, false on error.
      */
     private boolean sendRequestToServer(String request) {
-        // TODO - implement this method
         // Hint: you should check if the connection is open
+        try {
+            if (clientSocket.getInetAddress().isReachable(50)) {
+
+                PrintWriter outToServer = new PrintWriter(
+                        clientSocket.getOutputStream(), true);
+                outToServer.println(request);
+                return true;
+
+            } else {
+                logger.log(Level.INFO, SERVER_1);
+            }
+        } catch (IOException i){
+            logger.log(Level.INFO, SERVER_1);
+        }
         return false;
     }
 
@@ -145,9 +205,19 @@ public class SimpleTcpClient {
      * (not included in the returned value).
      */
     private String readResponseFromServer() {
-        // TODO - implement this method
         // Hint: you should check if the connection is open
-        return null;
+        String response = "";
+        if(clientSocket.isConnected()){
+            try {
+                BufferedReader inFromServer = new BufferedReader(
+                        new InputStreamReader(clientSocket.getInputStream()));
+                response = inFromServer.readLine();
+            } catch (IOException i){
+                logger.log(Level.SEVERE, SERVER_1);
+            }
+        }else{ logger.log(Level.INFO, SERVER_1); }
+
+        return response;
     }
 
     /**
