@@ -149,13 +149,16 @@ public class TCPClient {
      *
      * @param recipient username of the chat user who should receive the message
      * @param message   Message to send
-     * @return true if message sent, false on error
      */
-    public boolean sendPrivateMessage(String recipient, String message) {
-        // TODO Step 6: Implement this method
-        // Hint: Reuse sendCommand() method
-        // Hint: update lastError if you want to store the reason for the error.
-        return false;
+    public void sendPrivateMessage(String recipient, String message) {
+        if (isConnectionActive()) {
+            try {
+                sendCommand("privmsg " + recipient + " " + message);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
 
