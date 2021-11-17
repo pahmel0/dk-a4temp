@@ -85,20 +85,17 @@ public class TCPClient {
      * Send a command to server.
      *
      * @param cmd A command. It should include the command word and optional attributes, according to the protocol.
-     * @return true on success, false otherwise
      */
-    private boolean sendCommand(String cmd) {
+    private void sendCommand(String cmd) {
         if(isConnectionActive()){
             try{
                 toServer.println(cmd);
-                return true;
             } catch (Exception e) {
                 System.out.print("A socket error occurred");
             }
         } else {
             System.out.println("The connection was closed");
         }
-        return false;
     }
 
 
@@ -106,20 +103,17 @@ public class TCPClient {
      * Send a public message to all the recipients.
      *
      * @param message Message to send
-     * @return true if message sent, false on error
      */
-    public boolean sendPublicMessage(String message) {
+    public void sendPublicMessage(String message) {
         try {
             if(message.equals("/joke")){
                 sendCommand("joke");
             } else {
                 sendCommand("msg " + message);
             }
-            return true;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return false;
 
     }
 
@@ -206,11 +200,7 @@ public class TCPClient {
      * @return Error message or "" if there has been no error
      */
     public String getLastError() {
-        if (lastError != null) {
-            return lastError;
-        } else {
-            return "";
-        }
+        return Objects.requireNonNullElse(lastError, "");
     }
 
     /**
@@ -218,9 +208,7 @@ public class TCPClient {
      */
     public void startListenThread() {
         // Call parseIncomingCommands() in the new thread.
-        Thread t = new Thread(() -> {
-            parseIncomingCommands();
-        });
+        Thread t = new Thread(this::parseIncomingCommands);
         t.start();
     }
 
