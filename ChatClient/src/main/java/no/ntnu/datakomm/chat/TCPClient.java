@@ -59,9 +59,19 @@ public class TCPClient {
      * that no two threads call this method in parallel.
      */
     public synchronized void disconnect() {
-        // TODO Step 4: implement this method
-        // Hint: remember to check if connection is active
+        if (isConnectionActive()) {
+            try {
+                toServer = null;
+                fromServer = null;
+                connection.close();
+                connection = null;
+                onDisconnect();
+            } catch (IOException i){
+                System.out.print("A socket error occurred");
+            }
+        }
     }
+
 
     /**
      * @return true if the connection is active (opened), false if not.
