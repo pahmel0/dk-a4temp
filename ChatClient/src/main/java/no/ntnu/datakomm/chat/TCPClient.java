@@ -101,11 +101,10 @@ public class TCPClient {
         try {
             if(message.equals("/joke")){
                 sendCommand("joke");
-                return true;
             } else {
                 sendCommand("msg " + message);
-                return true;
             }
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -119,8 +118,12 @@ public class TCPClient {
      * @param username Username to use
      */
     public void tryLogin(String username) {
-        // TODO Step 3: implement this method
-        // Hint: Reuse sendCommand() method
+        try {
+            sendCommand("login " + username);
+            refreshUserList();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     /**
