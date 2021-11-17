@@ -77,10 +77,19 @@ public class TCPClient {
      * @return true on success, false otherwise
      */
     private boolean sendCommand(String cmd) {
-        // TODO Step 2: Implement this method
-        // Hint: Remember to check if connection is active
+        if(isConnectionActive()){
+            try{
+                toServer.println(cmd);
+                return true;
+            } catch (Exception e) {
+                System.out.print("A socket error occurred");
+            }
+        } else {
+            System.out.println("The connection was closed");
+        }
         return false;
     }
+
 
     /**
      * Send a public message to all the recipients.
@@ -89,10 +98,19 @@ public class TCPClient {
      * @return true if message sent, false on error
      */
     public boolean sendPublicMessage(String message) {
-        // TODO Step 2: implement this method
-        // Hint: Reuse sendCommand() method
-        // Hint: update lastError if you want to store the reason for the error.
+        try {
+            if(message.equals("/joke")){
+                sendCommand("joke");
+                return true;
+            } else {
+                sendCommand("msg " + message);
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return false;
+
     }
 
     /**
