@@ -23,11 +23,31 @@ public class TCPClient {
      * @return True on success, false otherwise
      */
     public boolean connect(String host, int port) {
-        // TODO Step 1: implement this method
-        // Hint: Remember to process all exceptions and return false on error
-        // Hint: Remember to set up all the necessary input/output stream variables
-        return false;
+
+        boolean connected = false;
+
+        InetSocketAddress serverAddress = new InetSocketAddress(host, port);
+
+
+        try
+        {
+            connection = new Socket();
+            connection.connect(serverAddress);
+            toServer = new PrintWriter(connection.getOutputStream(), true);
+            InputStream in = connection.getInputStream();
+            fromServer = new BufferedReader(new InputStreamReader(in));
+
+            connected = true;
+
+        }
+        catch (IOException ex)
+        {
+            ex.printStackTrace();
+        }
+
+        return connected;
     }
+
 
     /**
      * Close the socket. This method must be synchronized, because several
